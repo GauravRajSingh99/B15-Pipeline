@@ -1,0 +1,88 @@
+trigger:
+  branches:
+    include:
+    - main
+  paths:
+    include:
+    - /Environment/dev
+
+pool: Agentpool12
+
+parameters:
+- name: Environmentkaun # Required as first property.
+  displayName: Environmentkaun # Human-readable name for the parameter.
+  type: string
+  default: dev
+  values: 
+   - dev
+   - qa
+
+variables:    # stage-level
+    WORKDIR_VAR: '$(System.DefaultWorkingDirectory)/Environment/${{ parameters.Environmentkaun }}'
+    SERVICECONNECTION_VAR: 'TestSC12' 
+
+stages:
+  - stage: initandPlan
+    displayName: initandPlan
+    jobs:
+    - job: initandPlan
+      displayName: initandPlan
+      steps:
+      - task: TerraformInstaller@1
+        inputs:
+          terraformVersion: 'latest'
+      - task: TerraformTaskV4@4
+        displayName: "initandPlan"
+        inputs:
+          provider: 'azurerm'
+          command: 'init'
+          workingDirectory: $(WORKDIR_VAR)
+          backendServiceArm: $(SERVICECONNECTION_VAR)
+          backendAzureRmResourceGroupName: 'rgbackend12'
+          backendAzureRmStorageAccountName: 'stbackend12'
+          backendAzureRmContainerName: 'container12'
+          backendAzureRmKey: 'dev.terraform.tfstate'
+      - task: TerraformTaskV4@4
+        displayName: "plan"
+        inputs:
+          provider: 'azurerm'
+          command: 'plan'
+          workingDirectory: $(WORKDIR_VAR)
+          environmentServiceNameAzureRM: $(SERVICECONNECTION_VAR) 
+  - stage: apply
+    displayName: apply
+    jobs:
+    - job: manualvalidationjob 
+      #timeoutInMinutes: 90
+      displayName: manualvalidationjob
+      pool: server
+      steps:
+      - task: ManualValidation@1
+        inputs:
+          notifyUsers: 'kuberdev66666@gmail.com'
+          approvers: 'kuberdev66666@gmail.com'
+          instructions: 'pls approve'
+    - job: apply
+      dependsOn: manualvalidationjob
+      displayName: apply  
+      steps:
+      - task: TerraformInstaller@1
+        inputs:
+          terraformVersion: 'latest'
+      - task: TerraformTaskV4@4
+        displayName: "initandPlan"
+        inputs:
+          provider: 'azurerm'
+          command: 'init'
+          workingDirectory: $(WORKDIR_VAR)
+          backendServiceArm: $(SERVICECONNECTION_VAR)
+          backendAzureRmResourceGroupName: 'rgbackend12'
+          backendAzureRmStorageAccountName: 'stbackend12'
+          backendAzureRmContainerName: 'container12'
+          backendAzureRmKey: 'dev.terraform.tfstate'
+      - task: TerraformTaskV4@4
+        inputs:
+          provider: 'azurerm'
+          command: 'apply'
+          workingDirectory: $(WORKDIR_VAR)
+          environmentServiceNameAzureRM: $(SERVICECONNECTION_VAR) 
