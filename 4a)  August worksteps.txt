@@ -1,0 +1,50 @@
+1) Arte factory package management strategies – Packages are kept on jfrog and nexus tools from google. And developers use packages from jfrog and nexus tools 
+   instead of directly fetching packages from google, which increases the security and reduces vulnerability.
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+AGENDA – Create SQL DB -------------------------------------------------------------------------
+
+1) Now firstly create SQL DB.
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+AGENDA – SETTING BACKEND CODE ON BACKEND VM -----------------
+
+2) Now we have to put backend code on backend VM 
+3) ssh into backend vm and just work as per read me file 
+4) SEARCH - How to Install Python Pip on Ubuntu 20.04 and then git clone the repository
+https://linuxize.com/post/how-to-install-pip-on-ubuntu-20.04/
+ls
+cd PyTodoBackendMonolith$
+5) Connection string = username + password for database
+6) nano app.py 
+Update connection string version as 17 and username and password also as given in code 
+7) Run given commands 
+8) Run ip of backend vm and port of db
+4.240.38.129:8000
+4.240.38.129:8000/api
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+AGENDA – SETTING FRONTEND CODE ON FRONTEND VM 
+1) ssh into frontend vm 
+2) Read readme file 
+3) curl -s https://deb.nodesource.com/setup_16.x | sudo bash
+sudo apt install nodejs –y
+4) git clone https://github.com/devopsinsiders/ReactTodoUIMonolith.git
+ls
+cd ReactTodoUIMonolith
+ls
+cd src 
+ls
+nano TodoApp.js
+Now in below field give the url of backend.
+Ctrl+s 
+Ctrl+x
+npm install – this command actually downloads dependencies from package.json on our vm or computer. After this node.modules folder comes in which dependencies are downloaded 
+ls
+cd build
+npm run build – By this our code will be converted into html, css, javascript code 
+5) Now our artefacts are ready so now putting these on nginx webserver. So the code which is in build folder has to be put in nginx server
+sudo systemctl status nginx
+sudo cp -r * /var/www/html/- putting all files from build folder into nginx
+sudo systemctl restart nginx
+98.70.107.15:80
+DevOpsInsiders
