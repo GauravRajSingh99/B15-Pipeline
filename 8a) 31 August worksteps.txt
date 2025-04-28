@@ -1,0 +1,50 @@
+1) Sonar Cube is a static code analysis tool that works for multiple programming languages. It has predefined rules inside it and when we write our code then we 
+   can validate our code with those predefined rules set of sonar cube and it will give a violation report to us.
+1a) SonarQube is an open source platform for continuous inspection of code quality
+1b) It is java based application
+2) As per above diagram sonarcube is running on server. We have sonarqube client that on which we will make zip of the code that we have to make i.e. .js, .py etc. 
+  Then this zip file will go to server then sonar qube will scan the code. And will provide a validated report 
+3) We should have ip of server computer to send and receive report
+4) Now our client should run inside pipeline i.e. inside the agent (vm) on which pipeline is running i.e. code uploading part from client to server will be done by 
+   pipeline.
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+AGENDA – CREATE VM ON WHICH SONAR CUBE SERVER WILL RUN USING DOCKER
+1) Sonar cube default port – 9000
+2) Create vm and install docker on it.
+3) SEARCH – sonarqube docker image 
+   https://hub.docker.com/_/sonarqube
+4) Run below command from docker hub
+   docker run --name sonarqube-custom -p 9000:9000 sonarqube:10.6-community 
+5) Open port 9000 in network settings of vm 
+6) Run in browser - http://4.213.52.198:9000/
+7) SEARCH – Default username and password of sonarcube is admin and admin 
+ 
+8) SEARCH – Sonar cloud
+9) Now to create connectivity with sonar qube, we will give organization url and personal access tokens
+10) Create local project
+11) Then create project 
+12) Now we need sonar scanner 
+13) Download sonar qube
+14) Extract files and Copy bin folder path and add into environment variable folder
+sonar-scanner.bat -D"sonar.projectKey=terraform-project" -D"sonar.sources=." -D"sonar.host.url=http://4.213.52.198:9000" -D"sonar.token=sqp_0427938016756f0b63231c74b390a13e04bc05e5"
+15) Now run this command in reactuimonolithic folder in vs code which will provide the report 
+On sonarcube server page
+The work of scanner is actually to upload the code and work of server is to generate the report.
+16) 
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+AGENDA – SONARQUBE IN PIPELINE ------------
+
+1) Now making another project and using in pipeline
+2) Go to market place and install sonarqube 
+3) Make service connection of sonarqube 
+4) Now follow sonarqube doc to make tasks in pipeline 
+
+5) SEARCH – PREPARE ANALYSIS CONFIGURATION or SONAR
+6) SEARCH – PREPARE ANALYSIS CONFIGURATION or SONAR
+7) Before running pipeline the version of sonar qube should match the version of java that we have to install in agent machine or vm i.e. java 17 version 
+8) Now run pipeline 
+9) Now sonar qube will give its report 
+
+
+

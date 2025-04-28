@@ -1,0 +1,166 @@
+trigger: none
+
+pool: Agentpool21
+
+stages:
+- stage: SonarQube
+  displayName: SonarQube
+  jobs:
+  - job: SonarQubejob
+    displayName: SonarQubejob
+    steps:
+      - task: SonarQubePrepare@6
+        inputs:
+          SonarQube: 'SonarqubeSC'
+          scannerMode: 'CLI'
+          configMode: 'manual'
+          cliProjectKey: 'azure'
+          cliSources: '.'
+      - task: SonarQubeAnalyze@6
+        inputs:
+          jdkversion: 'JAVA_HOME_17_X64'
+
+- stage: BuildStage
+  displayName: BuildStage
+  jobs:
+  - job: BuildJobs
+    displayName: BuildJobs
+    steps:
+      - task: NodeTool@0
+        inputs:
+          versionSource: 'spec'
+          versionSpec: '16.x'
+      - task: Npm@1
+        inputs:
+          command: 'install'
+          workingDir: '$(System.DefaultWorkingDirectory)'
+      - task: Npm@1
+        inputs:
+          command: 'custom'
+          workingDir: '$(System.DefaultWorkingDirectory)'
+          customCommand: 'run build'
+      - task: PublishPipelineArtifact@1
+        inputs:
+          targetPath: '$(System.DefaultWorkingDirectory)/build'
+          artifact: 'todoapp-ui-artifacts'
+          publishLocation: 'pipeline'
+- stage: DeployStage          
+  displayName: DeployStage
+  jobs:
+  - job: Deployjob
+    displayName: Deployjob
+    steps : 
+      - task: DownloadPipelineArtifact@2
+        inputs:
+          buildType: 'current'
+          artifactName: 'todoapp-ui-artifacts'
+          targetPath: '$(System.DefaultWorkingDirectory)/dhondhuArtifacts'
+      - task: SSH@0
+        inputs:
+          sshEndpoint: 'Frontend vm service connection'
+          runOptions: 'commands'
+          commands: |
+            cd /tmp
+            mkdir todo12
+          readyTimeout: '20000'
+      - task: CopyFilesOverSSH@0
+        inputs:
+          sshEndpoint: 'Frontend vm service connection'
+          sourceFolder: '$(System.DefaultWorkingDirectory)/dhondhuArtifacts'
+          contents: '**'
+          targetFolder: '/tmp/todo12'
+          readyTimeout: '20000'
+      - task: SSH@0
+        inputs:
+          sshEndpoint: 'Frontend vm service connection'
+          runOptions: 'commands'
+          commands: |
+            sudo rm -rf /var/www/html/*
+            sudo cp -r /tmp/todo12/* /var/www/html
+            sudo rm -rf /tmp/todo12
+             readyTimeout: '20000'
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+This pipeline is designed to automate the process of analyzing, building, and deploying a project (likely a front-end application) with the following stages:
+
+### 1. **SonarQube Stage:**
+   - **Purpose:** To perform static code analysis to identify bugs, code smells, and security vulnerabilities.
+   - **Steps:**
+     1. **SonarQubePrepare:** Sets up the SonarQube scanner and configures it to analyze the code (specifically, using the 'CLI' mode and a project key of 'azure').
+     2. **SonarQubeAnalyze:** Runs the SonarQube analysis using Java 17 for scanning.
+
+### 2. **Build Stage:**
+   - **Purpose:** To build the project (likely a Node.js front-end).
+   - **Steps:**
+     1. **NodeTool:** Installs Node.js version 16.x.
+     2. **Npm install:** Installs the project dependencies via `npm install`.
+     3. **Npm custom build:** Runs a custom build command (`npm run build`).
+     4. **PublishPipelineArtifact:** Publishes the build output (stored in the `build` folder) as an artifact called `todoapp-ui-artifacts`.
+
+### 3. **Deploy Stage:**
+   - **Purpose:** To deploy the built project to a remote server.
+   - **Steps:**
+     1. **DownloadPipelineArtifact:** Downloads the published build artifact (`todoapp-ui-artifacts`) to a local directory.
+     2. **SSH (Create Directory):** Connects to a remote server (using SSH) and creates a directory `/tmp/todo12` for the deployment.
+     3. **CopyFilesOverSSH:** Copies the build files from the local directory to the remote server's `/tmp/todo12` folder.
+     4. **SSH (Deploy):** Connects to the remote server again to:
+        - Clean up the old files in the `/var/www/html` directory (likely where the web application is hosted).
+        - Copies the new build files to `/var/www/html`.
+        - Removes the temporary folder `/tmp/todo12`.
+
+### Summary:
+The pipeline first analyzes the code with SonarQube, then builds the application using Node.js, and finally deploys the build output to a remote server's web directory.
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+Sure! Here’s an even simpler explanation of each line step by step:
+
+### 1. **SonarQube Stage:**
+   - **Purpose:** Analyzes code quality (find bugs, security issues).
+   
+   - **Steps:**
+     1. **SonarQubePrepare:** 
+        - Prepares SonarQube to analyze your code.
+        - Sets the project key (`azure`) and tells it where the source code is (`.` - current directory).
+     2. **SonarQubeAnalyze:** 
+        - Runs the analysis using Java 17.
+
+---
+
+### 2. **Build Stage:**
+   - **Purpose:** Builds the application (likely a web front-end).
+
+   - **Steps:**
+     1. **NodeTool:**
+        - Installs Node.js version 16.x.
+     2. **Npm install:**
+        - Installs all the necessary dependencies for the project.
+     3. **Npm custom build:**
+        - Runs the build process (`npm run build`) to generate the production files.
+     4. **PublishPipelineArtifact:**
+        - Saves the build output into a file (`todoapp-ui-artifacts`) so it can be used later.
+
+---
+
+### 3. **Deploy Stage:**
+   - **Purpose:** Deploys the built files to a server.
+
+   - **Steps:**
+     1. **DownloadPipelineArtifact:**
+        - Downloads the build output (`todoapp-ui-artifacts`) to the local machine.
+     2. **SSH (Create Directory):**
+        - Connects to the server via SSH and creates a folder `/tmp/todo12` for the deployment.
+     3. **CopyFilesOverSSH:**
+        - Copies the build files from the local machine to the server’s `/tmp/todo12` folder.
+     4. **SSH (Deploy):**
+        - Connects to the server again and:
+          - Deletes old files from `/var/www/html`.
+          - Copies the new build files into `/var/www/html` to update the live site.
+          - Removes the temporary `/tmp/todo12` folder.
+
+---
+
+### In Short:
+- **SonarQube** checks the code quality.
+- **Build** installs dependencies, builds the app, and stores the output.
+- **Deploy** copies the build to a server and updates the live site.
