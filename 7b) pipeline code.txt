@@ -1,0 +1,64 @@
+trigger: none
+
+pool: Agentpool21
+
+stages:
+- stage: BuildStage
+  displayName: BuildStage
+  jobs:
+  - job: BuildJobs
+    displayName: BuildJobs
+    steps:
+      - task: NodeTool@0
+        inputs:
+          versionSource: 'spec'
+          versionSpec: '16.x'
+      - task: Npm@1
+        inputs:
+          command: 'install'
+          workingDir: '$(System.DefaultWorkingDirectory)'
+      - task: Npm@1
+        inputs:
+          command: 'custom'
+          workingDir: '$(System.DefaultWorkingDirectory)'
+          customCommand: 'run build'
+      - task: PublishPipelineArtifact@1
+        inputs:
+          targetPath: '$(System.DefaultWorkingDirectory)/build'
+          artifact: 'todoapp-ui-artifacts'
+          publishLocation: 'pipeline'
+- stage: DeployStage          
+  displayName: DeployStage
+  jobs:
+  - job: Deployjob
+    displayName: Deployjob
+    steps : 
+      - task: DownloadPipelineArtifact@2
+        inputs:
+          buildType: 'current'
+          artifactName: 'todoapp-ui-artifacts'
+          targetPath: '$(System.DefaultWorkingDirectory)/dhondhuArtifacts'
+      - task: SSH@0
+        inputs:
+          sshEndpoint: 'Frontend vm service connection'
+          runOptions: 'commands'
+          commands: |
+            cd /tmp
+            mkdir todo12
+          readyTimeout: '20000'
+      - task: CopyFilesOverSSH@0
+        inputs:
+          sshEndpoint: 'Frontend vm service connection'
+          sourceFolder: '$(System.DefaultWorkingDirectory)/dhondhuArtifacts'
+          contents: '**'
+          targetFolder: '/tmp/todo12'
+          readyTimeout: '20000'
+      - task: SSH@0
+        inputs:
+          sshEndpoint: 'Frontend vm service connection'
+          runOptions: 'commands'
+          commands: |
+            sudo rm -rf /var/www/html/*
+            sudo cp -r /tmp/todo12/* /var/www/html
+            sudo rm -rf /tmp/todo12
+             readyTimeout: '20000'

@@ -1,0 +1,33 @@
+AGENGA – CONTINUING LEFT PART OF  11 August 2024------------------------------------------
+
+1) Since, if we have to deploy application, automate it, make pipeline of it, then we should atleast know the manual process to deploy that application.
+2) Our application was of react JS, so manual process is as below
+3) $(System.DefaultWorkingDirectory) – It is a predefined variable 
+4) Writing pipeline
+i) 
+ii) SEARCH IN ASSISTANT – node installer
+iii) SEARCH IN ASSISTANT – npm
+iv) SEARCH IN ASSISTANT – npm
+v) SEARCH IN ASSISTANT – upload so select “Publish Pipeline Artifacts”
+vi) Now run pipeline so our build is ready 
+vii) Now we can see our build has come into azure artifacts 
+5) Now we have to deploy these artifacts on our frontend vm in deploy stage 
+
+
+6) All stages run on different different agents
+7) Now we have to download our artefacts 
+8) SEARCH IN ASSISTANT – download pipeline artifacts
+9) Now use or create service connection 
+10) SEARCH IN ASSISTANT – copy files over ssh
+11) While running pipeline got below 
+12) So to resolve above permission error we will do so 
+13) SEARCH – SSH
+14) update as below 
+15) SEARCH – SSH
+16) Now got below error 
+17) Remove todo folder as below from frontend vm
+18) Rename todo as todo 1
+19) Now run pipeline
+So it is working but showing this ##[error]bash: readyTimeout:: command not found
+20) Run public ip of frontend vm in browser its working fine 
+21) Now suppose if developer changes colour code in todo app so enter into src folder and make changes in theme.js file

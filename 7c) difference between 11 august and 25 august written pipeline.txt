@@ -1,0 +1,229 @@
+difference between 11 august and 25 august written pipeline-------------------
+
+11 august-----------------------------
+
+trigger: none 
+
+pool: Agentpool21
+
+stages:
+- stage: Buildstage
+  displayName: Buildstage
+  jobs:
+  - job: BuildJob
+    displayName: BuildJob
+    steps: 
+    - task: NodeTool@0
+      displayName: Node Install
+      inputs:
+        versionSource: 'spec'
+        versionSpec: '16.x'
+    - task: Npm@1
+      displayName: npm Install
+      inputs:
+        command: 'install'
+        workingDir: '$(System.DefaultWorkingDirectory)'
+    - task: Npm@1
+      displayName: npm run build
+      inputs:
+        command: 'custom'
+        workingDir: '$(System.DefaultWorkingDirectory)'
+        customCommand: 'run build'
+    - task: CmdLine@2
+      inputs:
+        script: 'ls'
+    - task: AzureCLI@2
+      inputs:
+        azureSubscription: 'TESTSC21'
+        scriptType: 'bash'
+        scriptLocation: 'inlineScript'
+        inlineScript: 'az storage blob directory upload -c container12 --account-name stbackend122 -s "$(System.DefaultWorkingDirectory)/build" -d directory --recursive'
+
+- stage: Releasestage 
+  displayName: Releasestage 
+  jobs:
+  - job: Deployjob
+    displayName: Deployjob
+    steps:
+    - task: AzureCLI@2
+      displayName: Downloads artifacts from storage account
+      inputs:
+       azureSubscription: 'TESTSC21'
+       scriptType: 'bash'
+       scriptLocation: 'inlineScript'
+       inlineScript: 'az storage blob directory download -c container12 --account-name stbackend122 -s "directory/build" -d "$(System.DefaultWorkingDirectory)/release" --recursive'
+
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+25 august-------------------------------------------------------------
+
+trigger: none
+
+pool: Agentpool21
+
+stages:
+- stage: BuildStage
+  displayName: BuildStage
+  jobs:
+  - job: BuildJobs
+    displayName: BuildJobs
+    steps:
+      - task: NodeTool@0
+        inputs:
+          versionSource: 'spec'
+          versionSpec: '16.x'
+      - task: Npm@1
+        inputs:
+          command: 'install'
+          workingDir: '$(System.DefaultWorkingDirectory)'
+      - task: Npm@1
+        inputs:
+          command: 'custom'
+          workingDir: '$(System.DefaultWorkingDirectory)'
+          customCommand: 'run build'
+      - task: PublishPipelineArtifact@1
+        inputs:
+          targetPath: '$(System.DefaultWorkingDirectory)/build'
+          artifact: 'todoapp-ui-artifacts'
+          publishLocation: 'pipeline'
+- stage: DeployStage          
+  displayName: DeployStage
+  jobs:
+  - job: Deployjob
+    displayName: Deployjob
+    steps : 
+      - task: DownloadPipelineArtifact@2
+        inputs:
+          buildType: 'current'
+          artifactName: 'todoapp-ui-artifacts'
+          targetPath: '$(System.DefaultWorkingDirectory)/dhondhuArtifacts'
+      - task: SSH@0
+        inputs:
+          sshEndpoint: 'Frontend vm service connection'
+          runOptions: 'commands'
+          commands: |
+            cd /tmp
+            mkdir todo12
+          readyTimeout: '20000'
+      - task: CopyFilesOverSSH@0
+        inputs:
+          sshEndpoint: 'Frontend vm service connection'
+          sourceFolder: '$(System.DefaultWorkingDirectory)/dhondhuArtifacts'
+          contents: '**'
+          targetFolder: '/tmp/todo12'
+          readyTimeout: '20000'
+      - task: SSH@0
+        inputs:
+          sshEndpoint: 'Frontend vm service connection'
+          runOptions: 'commands'
+          commands: |
+            sudo rm -rf /var/www/html/*
+            sudo cp -r /tmp/todo12/* /var/www/html
+            sudo rm -rf /tmp/todo12
+             readyTimeout: '20000'
+
+what is the difference between above 2 pipelines. please tell in simple and point wise
+
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+Here’s a simple, point-wise comparison of the two pipelines:
+
+### **1. Build Stage:**
+- **First Pipeline:**
+  - **Build steps:** It installs Node.js, runs `npm install`, and then runs `npm run build` to build the application.
+  - **Uploads to Azure Storage:** After building, it uploads the build folder to an Azure Blob Storage container.
+  
+- **Second Pipeline:**
+  - **Build steps:** Similar to the first pipeline, it installs Node.js, runs `npm install`, and `npm run build`.
+  - **Publishes Pipeline Artifact:** After building, it publishes the build directory as a pipeline artifact (not uploading to Azure Storage).
+  
+### **2. Deployment Stage:**
+- **First Pipeline:**
+  - **Downloads from Azure Storage:** It downloads the build folder from Azure Blob Storage.
+  - **No direct SSH:** It doesn’t have steps for interacting with a remote server via SSH.
+  
+- **Second Pipeline:**
+  - **Downloads from Pipeline Artifact:** It downloads the build folder from the pipeline artifact (which was published in the build stage).
+  - **SSH Interactions:** It interacts with a VM using SSH. It creates a folder on the remote server, copies the build files there, and then moves the files to 
+    the appropriate location on the VM (`/var/www/html`).
+  
+### **3. Artifact Management:**
+- **First Pipeline:**
+  - **Uses Azure Storage:** It uploads and downloads the build directory to/from Azure Blob Storage.
+  
+- **Second Pipeline:**
+  - **Uses Pipeline Artifact:** It publishes the build directory as a pipeline artifact and downloads it later for deployment.
+
+### **4. Execution Context:**
+- **First Pipeline:**
+  - **Azure CLI for Storage:** Uses `AzureCLI` to handle the upload and download of the build from Azure Storage.
+  
+- **Second Pipeline:**
+  - **SSH and File Copy:** Uses `SSH` and `CopyFilesOverSSH` tasks to copy the build to a remote VM and update the web server's root directory.
+
+### **Summary of Key Differences:**
+1. **Artifact Location:**  
+   - First pipeline uses Azure Storage to store and retrieve build artifacts.
+   - Second pipeline uses Azure Pipeline's own artifact system.
+
+2. **Deployment Mechanism:**  
+   - First pipeline only handles Azure Blob Storage for the deployment. 
+   - Second pipeline handles deployment via SSH to a remote VM.
+
+3. **No Direct SSH in the First Pipeline:**  
+   - The first pipeline doesn't interact with a remote server directly (no SSH steps).
+   - The second pipeline uses SSH commands for managing the deployment on a VM.
+
+Let me know if you need more details on any specific part!
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
