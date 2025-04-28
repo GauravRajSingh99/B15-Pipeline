@@ -1,0 +1,97 @@
+AGENDA – Writing in yaml ----------------------------------------------------------------
+1) What is backlog, sprint?
+2) 2 branching strategy
+i) trunk based in terraform – in main branch we made 2 folders preprod and prod. We made 2 pipelines for them. Now using git clone we made feature branch for dev 
+folder. Now pushed it and raised a PR then if plan was fine then PR was approved. Then it merged and automatically pipeline ran then all stages of pipeline ran along 
+with tfsec, tuple of, linter, checkov all tools ran and then apply ran and got deployed.
+
+3) Now put nginx script in code 
+ 
+4) git add . 
+   git commit -m “updated”
+   git push 
+5) run pipeline 
+
+6) Now ssh into frontend vm and check whether nginx is there or not as we had already used nginx script in our code. So nginx is there.
+7) Now we want that in single click our application can be made, then gets build, artefacts can be made (converted into html, css, javascript) and then it gets 
+  deployed on our vm as shown in below diagram.
+8) Continuous Integration – The process of making artefacts by building the code of application
+9) Continuous Deployment – The process of transferring artefacts on to vm 
+10) Build pipeline and release pipeline is shown below 
+11) Release or CD pipeline is not available in yaml 
+12) So in single pipeline we will create 2 stages i.e
+i) Build stage
+ii) Release stage
+
+13) Now go to dev.azure.com and import below code in repo from github
+14) Now we will make our pipeline – select new pipeline – select repo 
+15) Now azure devops is so smart that it identified that it’s a node.js app
+16) Select starter pipeline 
+17) SEARCH – azure YAML schema reference 
+https://learn.microsoft.com/en-us/azure/devops/pipelines/yaml-schema/?view=azure-pipelines
+18) node js acts as medium to convert react js into html css javascript so that it can run on browser
+    ReactJS ---------> nODEJS(BUILD PROCESS) -------> Html/css/js
+19) SEARCH - predefined variables azure devops
+20 Jis jagah agent ke andar code clone hoga, us s wali directory ka path yaha aajayega aur usi directory ya folder ke andar package.json file hogi 
+   c:\agent_work\1\s
+21) Now checking whether build folder is creating or not so we can use command line or power shell
+22) Now delete build folder because it has to be generated or created
+23) Now running pipeline 
+24) Now we can see in pipeline that our build folder is present, after running ls
+25) Now what is made inside build folder can see as below
+26) 
+27) Use “publish pipeline artifacts” or storage account to upload and publish artefacts i.e. build folder. So basically transferring content of build folder into 
+    storage account.
+28) SEARCH – azure storage blob directory 
+    https://learn.microsoft.com/en-us/cli/azure/storage/blob/directory?view=azure-cli-latest#az-storage-blob-directory-upload
+    az storage blob directory upload -c container12 --account-name stbackend122 -s "$(System.DefaultWorkingDirectory)/build" -d directory --recursive
+29) Install azure cli on vm 
+30) Now write release stage and use below one 
+    az storage blob directory download -c container12 --account-name stbackend122 -s SourceDirectoryPath -d "<local-path>" --recursive
+31) In ADO, for making 3rd party service to connect, we use service connection
+31a) Give details of frontend vm 
+32) Let transfer build artifacts folder into release folder 
+'az storage blob directory download -c container12 --account-name stbackend122 -s "directory/build" -d "$(System.DefaultWorkingDirectory)/release" --recursive'
+33) After this run public ip of frontend vm in browser
+
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+1) Since, if we have to deploy application, automate it, make pipeline of it, then we should atleast know the manual process to deploy that application.
+2) Our application was of react JS, so manual process is as below
+   ReactJS ---> npm install --> npm run build --> build folder --> Upload to azure artifacts --> ssh frontendvm - copy aryifacts (/var/www/html) 
+
+3) $(System.DefaultWorkingDirectory) – It is a predefined variable 
+4) Writing pipeline
+i) 
+ii) SEARCH IN ASSISTANT – node installer
+iii) SEARCH IN ASSISTANT – npm
+iv) SEARCH IN ASSISTANT – npm
+v) SEARCH IN ASSISTANT – upload = publish pipeline artifacts
+vi) Now run pipeline so our build is ready 
+vii) Now we can see our build has come into azure artifacts 
+5) Now we have to deploy these artifacts on our frontend vm in deploy stage 
+6) All stages run on different different agents
+7) Now we have to download our artefacts 
+8) SEARCH IN ASSISTANT – download pipeline artifacts
+9) Now use or create service connection 
+10) SEARCH IN ASSISTANT – copy files over ssh
+11) While running pipeline got below 
+12) So to resolve above permission error we will do so 
+13) SEARCH – SSH
+14) update as below 
+15) SEARCH – SSH
+16) Now got below error 
+17) Remove todo folder as below from frontend vm
+18) Rename todo as todo 1
+19) Now run pipeline
+So it is working but showing this ##[error]bash: readyTimeout:: command not found
+20) Run public ip of frontend vm in browser its working fine 
+21) Now suppose if developer changes colour code in todo app so enter into src folder and make changes in theme.js file
+
+
+
+
+
+
+
+

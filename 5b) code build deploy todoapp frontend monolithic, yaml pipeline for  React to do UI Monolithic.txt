@@ -1,0 +1,50 @@
+trigger: none 
+
+pool: Agentpool21
+
+stages:
+- stage: Buildstage
+  displayName: Buildstage
+  jobs:
+  - job: BuildJob
+    displayName: BuildJob
+    steps: 
+    - task: NodeTool@0
+      displayName: Node Install
+      inputs:
+        versionSource: 'spec'
+        versionSpec: '16.x'
+    - task: Npm@1
+      displayName: npm Install
+      inputs:
+        command: 'install'
+        workingDir: '$(System.DefaultWorkingDirectory)'
+    - task: Npm@1
+      displayName: npm run build
+      inputs:
+        command: 'custom'
+        workingDir: '$(System.DefaultWorkingDirectory)'
+        customCommand: 'run build'
+    - task: CmdLine@2
+      inputs:
+        script: 'ls'
+    - task: AzureCLI@2
+      inputs:
+        azureSubscription: 'TESTSC21'
+        scriptType: 'bash'
+        scriptLocation: 'inlineScript'
+        inlineScript: 'az storage blob directory upload -c container12 --account-name stbackend122 -s "$(System.DefaultWorkingDirectory)/build" -d directory --recursive'
+
+- stage: Releasestage 
+  displayName: Releasestage 
+  jobs:
+  - job: Deployjob
+    displayName: Deployjob
+    steps:
+    - task: AzureCLI@2
+      displayName: Downloads artifacts from storage account
+      inputs:
+       azureSubscription: 'TESTSC21'
+       scriptType: 'bash'
+       scriptLocation: 'inlineScript'
+       inlineScript: 'az storage blob directory download -c container12 --account-name stbackend122 -s "directory/build" -d "$(System.DefaultWorkingDirectory)/release" --recursive'
