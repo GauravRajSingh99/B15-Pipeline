@@ -1,0 +1,25 @@
+trigger: none 
+
+pool: Agentpool12
+
+variables:
+- group: vm_details
+
+schedules:
+- cron: '0 21 * * *' 
+  displayName: run pipline at 9pm   
+  always: true
+
+stages: 
+- stage: StartVm 
+  displayName: StartVm
+  jobs:
+  - job: StartVm
+    displayName: StartVm
+    steps:
+    - task: AzureCLI@2
+      inputs:
+        azureSubscription: 'TestSC12'
+        scriptType: 'bash'
+        scriptLocation: 'inlineScript'
+        inlineScript: 'az vm start -g $(RG_NAME) -n $(VM_NAME)'
