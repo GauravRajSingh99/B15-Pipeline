@@ -1,0 +1,45 @@
+1) Using “azure-todo-app-terraform” from website
+2) Make new project and do import repo as shown below
+3) Now we will make pipeline to deploy this imported code 
+4) After making pipeline git clone the repo in our local and open with vs code 
+5) Now in vs code made changes and open terminal and perform below steps 
+i) git add .
+ii) git commit -m “updated tfvars”
+iii) git push 
+6) Now refresh dev.azure.com, which will show updated code in it 
+7) 
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+8) Functions used in code 
+i) lookup
+ii) ceil
+iii) transpose
+iv) 
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+8a) So the flow is as below
+    codepull -> Trufflehog scan -> Superlinter -> Tfsec -> init,plan,apply
+
+9) Now our pipeline is successful means our infra is successfully created to deploy application on it.
+10) Conversation of code to a different format which is understandable by a browser is BUILD PROCESS.
+    REACT- TSX/JSX -----------> Build process --------------> HTML/CSS
+
+11) Now for deployment 
+    As soos as developer checksin the code --> Sonarcloudscan  ---> It generates artifacts ---> Publish artifacts ----> Deployment on VM
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+1) After this monolithic architecture end to end manual deployment will be completed 
+i) Landing zone with terraform pipeline 
+ii) nginx data script se khatam 
+iii) Pipeline deployment completed with this setup i.e. fronted and backend
+iv) code quality completed by sonar cube 
+v) Unit test case alag team
+vi) Vulnerability scan by checkmarks tool and checkov tool 
+vii) infrastructure vulnerability completed by tfsec
+viii) Trufflehog se secret management completed
+ix) Linting process completed by super linter 
+
+
+
+
+
